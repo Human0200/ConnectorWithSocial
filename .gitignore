@@ -32,3 +32,5 @@ coverage
 
 *.tsbuildinfo
 
+settings.php
+

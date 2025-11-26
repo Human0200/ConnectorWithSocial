@@ -1,6 +1,19 @@
 <?php
 require_once './crest.php';
 require_once('functions.php');
+
+// Добавляем подключение к БД
+require_once('./settings.php');
+$pdo = new PDO(
+    "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+    DB_USER,
+    DB_PASS,
+    [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ]
+);
+
 $result = CRest::installApp();
 if ($result['rest_only'] === false) { ?>
     <!DOCTYPE html>
@@ -113,13 +126,13 @@ $uninstall_handler = ($_SERVER['HTTPS'] === 'on' || $_SERVER['SERVER_PORT'] === 
 
 
 
-// CRest::call(
-//     'event.bind',
-//     [
-//         'event' => 'ONAPPINSTALL',
-//         'handler' => $install_handler,
-//     ]
-// );
+CRest::call(
+    'event.bind',
+    [
+        'event' => 'ONAPPINSTALL',
+        'handler' => $install_handler,
+    ]
+);
 
 CRest::call(
     'event.bind',
@@ -138,6 +151,14 @@ $handlerUrl = 'https://bitrix-connector.lead-space.ru/connector_max/Bitrix/handl
 
 //file_put_contents(__DIR__.'/settings_check.txt', print_r($_REQUEST));
 $connector_id = getConnectorID($_REQUEST['DOMAIN']);
+
+file_put_contents(__DIR__ . '/install_debug.txt', 
+    date('Y-m-d H:i:s') . " - Domain: " . $_REQUEST['DOMAIN'] . ", Connector ID: " . $connector_id . "\n", 
+    FILE_APPEND
+);
+
+if($connector_id != null && !empty($connector_id)) {
+    
 
 // Регистрируем коннектор
 $result = CRest::call(
@@ -160,7 +181,9 @@ $result = CRest::call(
         'PLACEMENT_HANDLER' => $handlerUrl,
     ]
 );
-
+}else{
+    echo 'Error registering connector: ' . $connector_id;
+}
 if (!empty($result['result'])) {
     // Привязываем событие для обработки сообщений
     $resultEvent = CRest::call(

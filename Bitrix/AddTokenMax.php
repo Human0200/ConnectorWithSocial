@@ -6,9 +6,6 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once 'settings.php';
 
-// Включение лога
-file_put_contents('debug.txt', "\n[".date('Y-m-d H:i:s')."] Новый запрос\n", FILE_APPEND);
-
 try {
     // 1. Проверка метода
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -17,7 +14,6 @@ try {
 
     // 2. Получение данных
     $input = json_decode(file_get_contents('php://input'), true);
-    file_put_contents('debug.txt', "Полученные данные: ".print_r($input, true)."\n", FILE_APPEND);
 
     // 3. Валидация
     if (!isset($input['domain'])) {
@@ -80,9 +76,7 @@ try {
     ]);
 
 } catch (Exception $e) {
-    file_put_contents('debug.txt', "Ошибка: ".$e->getMessage()."\n", FILE_APPEND);
+    file_put_contents('debugAddToken.txt', "Ошибка: ".$e->getMessage()."\n", FILE_APPEND);
     http_response_code(400);
     echo json_encode(['error' => $e->getMessage()]);
 }
-
-file_put_contents('debug.txt', "[".date('Y-m-d H:i:s')."] Завершение\n", FILE_APPEND);
